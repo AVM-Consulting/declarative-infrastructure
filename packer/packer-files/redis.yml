@@ -1,0 +1,37 @@
+---
+
+- name: Setup Python
+  hosts: all
+  gather_facts: no
+  tasks:
+  - name: Boostrap python
+    raw: test -e /usr/bin/python || (apt-get -y update && apt-get install -y python-minimal)
+
+- name: Setup Redis
+  hosts: all
+
+  tasks:
+  - name: Ensure Redis configured with role
+    import_role:
+      name: ../ansible-redis
+
+
+  - name: Put runtime programs
+    copy:
+      src: files/{{ item }}
+      dest: /usr/local/bin/{{ item }}
+      mode: 0755
+      owner: root
+      group: root
+    with_items:
+    - run.sh
+
+- name: Squash the Container (Cleanup)
+  hosts: all
+  gather_facts: no
+  tasks:
+  - name: Remove python
+    raw: apt-get purge -y python-minimal && apt-get autoremove -y
+
+  - name: Remove apt lists
+    raw: rm -rf /var/lib/apt/lists/*

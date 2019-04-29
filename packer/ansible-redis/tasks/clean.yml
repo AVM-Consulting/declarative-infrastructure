@@ -1,0 +1,13 @@
+---
+- name: Remove build deps
+  apt:
+    pkg: "{{ redis_build_deps }}"
+    state: absent
+    purge: yes
+    autoremove: yes
+    autoclean: yes
+
+- name: Remove sources
+  file:
+    path: "{{ redis_sources_dir }}"
+    state: absent

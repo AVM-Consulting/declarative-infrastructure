@@ -1,0 +1,77 @@
+---
+
+- name: Create Required Redis Build Directories
+  file:
+    path: "{{ redis_sources_dir }}"
+    state: directory
+
+- name: Create Data Home
+  file:
+    path: "{{ redis_data_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Create Required Redis Home Directories
+  file:
+    path: "{{ redis_home_dir }}"
+    state: directory
+
+
+- name: Download and verify Redis
+  get_url:
+    url: "{{ redis_download_url }}"
+    dest: "{{ redis_sources_dir }}/redis-{{redis_version}}.tar.gz"
+    checksum: "sha256:{{redis_checksum}}"
+
+- name: Unzip Redis
+  unarchive:
+    src: "{{ redis_sources_dir }}/redis-{{redis_version}}.tar.gz"
+    dest: "{{ redis_sources_dir }}"
+    remote_src: yes
+    creates: /usr/src/redis/Makefile
+
+- name: Disable Redis protected mode in server.h
+  lineinfile:
+    path: "{{ redis_sources_dir }}/redis-stable/src/server.h"
+    state: present
+    regexp: "^#define CONFIG_DEFAULT_PROTECTED_MODE 1$"
+    line: "#define CONFIG_DEFAULT_PROTECTED_MODE 0"
+
+- name: Uncomment Bind in the conf
+  lineinfile:
+    path: "{{ redis_sources_dir }}/redis-{{redis_version}}/redis.conf"
+    state: present
+    regexp: "^ # bind 127.0.0.1$"
+    line: "bind 127.0.0.1"
+
+- name: Uncomment Daemonize in the conf
+  lineinfile:
+    path: "{{ redis_sources_dir }}/redis-{{redis_version}}/redis.conf"
+    state: present
+    regexp: "^ # daemonize no$"
+    line: "daemonize no"
+
+- name: Copy the Redis conf file
+  copy:
+    src: "{{ redis_sources_dir }}/redis-{{redis_version}}/redis.conf"
+    dest: /etc/redis/
+    owner: "{{redis_user}}"
+    group: "{{redis_group}}"
+    remote_src: yes
+    mode: 0644
+
+- name: Compile Redis sources
+  make:
+    chdir: "{{ redis_sources_dir }}/redis-{{redis_version}}/"
+    target: install
+
+- name: Copy the redis-senitel file
+  copy:
+    src: "{{ redis_sources_dir }}/redis-{{redis_version}}/src/redis-sentinel"
+    dest: /usr/local/bin/
+    owner: "{{redis_user}}"
+    group: "{{redis_group}}"
+    remote_src: yes
+    mode: 0755

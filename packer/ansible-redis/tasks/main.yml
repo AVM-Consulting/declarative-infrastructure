@@ -1,0 +1,15 @@
+---
+- name: Create Redis group and user
+  import_tasks: user.yml
+
+- name: Install dependency packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ redis_build_deps }}"
+
+- name: Install redis
+  import_tasks: init.yml
+
+- name: Cleanup the packages
+  import_tasks: clean.yml

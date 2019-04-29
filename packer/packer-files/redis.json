@@ -1,0 +1,26 @@
+{
+  "builders": [{
+    "type": "docker",
+    "image": "debian:jessie-slim",
+    "commit": true,
+    "changes": [
+      "VOLUME /data",
+      "WORKDIR /data",
+      "EXPOSE 6379",
+      "ENTRYPOINT [\"run.sh\"]",
+      "CMD [\"redis-server\", \"/etc/redis/redis.conf\"]"
+    ]
+  }],
+
+  "provisioners": [{
+    "type": "ansible",
+    "user": "root",
+    "playbook_file": "redis.yml"
+  }],
+
+  "post-processors": [[ {
+    "type": "docker-tag",
+    "repository": "avm-blog/redis",
+    "tag": "latest"
+  } ]]
+}

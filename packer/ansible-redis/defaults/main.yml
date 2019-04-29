@@ -1,0 +1,17 @@
+---
+redis_user: redis
+redis_group: redis
+
+redis_version: stable
+redis_download_url: http://download.redis.io/redis-{{redis_version}}.tar.gz
+redis_sources_dir: /usr/src/redis
+redis_checksum: b772bbb345ea8d691169a83f1eb8b0863eac1676fb9f29d4a94ea4e8b88397d0
+redis_home_dir: /etc/redis
+redis_data_dir: /data
+
+redis_build_deps:
+- ca-certificates
+- wget
+- gcc
+- libc6-dev
+- make
